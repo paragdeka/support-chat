@@ -1,0 +1,52 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Build output (Angular & Node)
+dist/
+build/
+tmp/
+temp/
+
+# Angular specific
+.angular/
+.angular-cache/
+.angular/  
+.angular.json.backup
+coverage/
+*.ngsummary.json
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Compiled source
+*.tsbuildinfo
+
+# Misc
+.cache/

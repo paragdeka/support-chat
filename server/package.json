@@ -1,0 +1,30 @@
+{
+  "name": "support-chat-server",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "ts-node src/server.ts",
+    "build": "tsc -p .",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "connect-mongo": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "mongoose": "^8.18.1",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/dotenv": "^6.1.1",
+    "@types/express": "^5.0.3",
+    "@types/express-session": "^1.18.2",
+    "@types/node": "^24.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
