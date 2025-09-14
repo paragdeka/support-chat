@@ -7,6 +7,8 @@ import session from "express-session";
 import MongoStore = require("connect-mongo");
 import type { MongoClient } from "mongodb";
 import agentRoutes from "./routes/agent.routes";
+import messageRoutes from "./routes/message.routes";
+import ticketRoutes from "./routes/ticket.routes";
 
 dotenv.config();
 
@@ -56,6 +58,8 @@ export const createExpressApp = async () => {
 
   // routes
   app.use("/api/agent", agentRoutes);
+  app.use("/api/message", messageRoutes);
+  app.use("/api/ticket", ticketRoutes);
 
   // error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

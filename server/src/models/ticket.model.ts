@@ -1,0 +1,40 @@
+import mongoose from "mongoose";
+
+export interface TicketType {
+  sessionId: string;
+  messages: mongoose.Types.ObjectId[];
+  status: "open" | "in-progress" | "closed";
+  priority: "low" | "medium" | "high";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const TicketSchema = new mongoose.Schema(
+  {
+    sessionId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    messages: {
+      type: [{ type: mongoose.Types.ObjectId, ref: "Message" }],
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["open", "in-progress", "closed"],
+      default: "open",
+    },
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
+
+export type TicketModel = mongoose.Model<TicketType>;
+
+const Ticket = mongoose.model<TicketType, TicketModel>("Ticket", TicketSchema);
+export default Ticket;
