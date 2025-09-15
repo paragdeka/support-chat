@@ -127,7 +127,7 @@ export const getMessageHistory = async (
 };
 
 // if message is more than 4 words, qualify it as an issue. issue = ticket creation
-const isIssue = (text: string): boolean => {
+export const isIssue = (text: string): boolean => {
   const words = text.split(/\s+/).filter((word) => word.length > 0);
   return words.length > 4;
 };
