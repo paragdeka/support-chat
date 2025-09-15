@@ -1,16 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { CustomerSocketService } from '../../services/customer-socket.service';
+import { environment } from '../../../environments/environment';
 
-interface ChatMessage {
-  sender: 'agent' | 'user';
+export interface ChatMessage {
+  sender: 'agent' | 'user' | 'system';
   text: string;
-  timestamp: Date;
+  timestamp: number;
 }
 
 @Component({
@@ -26,15 +28,20 @@ interface ChatMessage {
   ],
   templateUrl: './chat.html',
 })
-export class Chat {
-  isOpen = signal(false);
+export class Chat implements OnInit, OnDestroy {
+  private customerSocketService = inject(CustomerSocketService);
 
-  messages = signal<ChatMessage[]>([
-    { sender: 'agent', text: 'Hi, how can I help you today?', timestamp: new Date() },
-  ]);
+  ngOnInit(): void {
+    this.customerSocketService.connect(environment.baseUrl);
+  }
+  ngOnDestroy(): void {
+    this.customerSocketService.disconnect();
+  }
+
+  isOpen = signal(false);
+  messages = this.customerSocketService.messages;
 
   private fb = inject(FormBuilder);
-
   messageForm = this.fb.group({
     message: ['', [Validators.required]],
   });
@@ -43,20 +50,12 @@ export class Chat {
     this.isOpen.update((v) => !v);
   }
 
-  private addMessage(sender: 'user' | 'agent', text: string) {
-    this.messages.update((msgs) => [...msgs, { sender, text, timestamp: new Date() }]);
-  }
-
   onSubmit() {
-    const text = this.messageForm.value.message?.trim();
-    if (!text) return;
+    if (this.messageForm.valid) {
+      const text = this.messageForm.value.message?.trim()!;
+      this.customerSocketService.sendMessage(text);
 
-    this.addMessage('user', text);
-    this.messageForm.reset();
-
-    // fake reply
-    setTimeout(() => {
-      this.addMessage('agent', 'Got it!');
-    }, 1000);
+      this.messageForm.reset();
+    }
   }
 }
