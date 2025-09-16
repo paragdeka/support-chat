@@ -1,0 +1,12 @@
+<div class="w-full h-screen flex">
+  <div
+    [ngClass]="{ 'w-16': isSidebarCollapsed(), 'w-60': !isSidebarCollapsed() }"
+    class="transition-all duration-300 bg-gray-800"
+  >
+    <app-sidebar [isCollapsed]="isSidebarCollapsed()" (toggleClicked)="toggleSidebar()" />
+  </div>
+  <div>
+    <span>Main content</span>
+    <!-- router-outlet -->
+  </div>
+</div>

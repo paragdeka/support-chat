@@ -1,0 +1,66 @@
+<div
+  class="h-full text-white flex flex-col transition-all duration-300 ease-in-out overflow-hidden w-full"
+>
+  <!-- header -->
+  <div class="py-3 px-4 flex items-center gap-2 cursor-pointer" routerLink="/">
+    <mat-icon class="flex-shrink-0 text-2xl">support_agent</mat-icon>
+    <h1
+      class="text-2xl whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out"
+      [class.opacity-0]="isCollapsed()"
+      [class.max-w-0]="isCollapsed()"
+      [class.opacity-100]="!isCollapsed()"
+      [class.max-w-xs]="!isCollapsed()"
+      style="transition-property: opacity, max-width"
+    >
+      Support
+    </h1>
+  </div>
+
+  <!-- navigation -->
+  <mat-nav-list class="w-full">
+    @for (item of navItems; track item.route) {
+    <a
+      [routerLink]="item.route"
+      routerLinkActive="bg-gray-700"
+      class="flex gap-2 items-center py-3 px-4 transition-all duration-300 ease-in-out group"
+    >
+      <!-- icon  -->
+      <mat-icon
+        class="flex-shrink-0 w-10 text-2xl"
+        [matTooltip]="item.name"
+        matTooltipPosition="right"
+        matTooltipShowDelay="200"
+      >
+        {{ item.icon }}
+      </mat-icon>
+
+      <span
+        class="whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out"
+        [class.opacity-0]="isCollapsed()"
+        [class.max-w-0]="isCollapsed()"
+        [class.opacity-100]="!isCollapsed()"
+        [class.max-w-xs]="!isCollapsed()"
+        style="transition-property: opacity, max-width; flex-grow: 1"
+      >
+        {{ item.name }}
+      </span>
+    </a>
+    }
+  </mat-nav-list>
+
+  <div class="mt-auto px-4 py-4">
+    <button
+      [matTooltip]="isCollapsed() ? 'Expand' : 'Collapse'"
+      matTooltipShowDelay="300"
+      matTooltipHideDelay="500"
+      matTooltipPosition="right"
+      mat-icon-button
+      (click)="toggleClicked.emit()"
+      class="cursor-pointer"
+    >
+      <mat-icon class="text-white!">{{
+        isCollapsed() ? 'arrow_circle_right' : 'arrow_circle_left'
+      }}</mat-icon>
+    </button>
+  </div>
+</div>
