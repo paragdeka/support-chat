@@ -1,0 +1,19 @@
+<button class="cursor-pointer" [matMenuTriggerFor]="profileMenu">
+  <div class="rounded-full w-8 h-8 bg-blue-500 flex justify-center items-center">
+    <p class="text-white text-xl">{{ profile().name[0].toUpperCase() }}</p>
+  </div>
+</button>
+<mat-menu #profileMenu="matMenu">
+  <div class="p-4">
+    <div class="flex gap-2 items-center">
+      <div class="rounded-full w-12 h-12 bg-blue-500 flex justify-center items-center">
+        <p class="text-white text-2xl">{{ profile().name[0].toUpperCase() }}</p>
+      </div>
+      <div>
+        <p class="text-lg">{{ profile().name }}</p>
+        <p class="text-sm text-gray-500">{{ profile().email }}</p>
+      </div>
+    </div>
+    <button mat-raised-button color="warn" class="w-full mt-8" (click)="logout()">Logout</button>
+  </div>
+</mat-menu>

@@ -15,6 +15,23 @@ export interface CredentialsForm {
   password: string;
 }
 
+export interface ProfileResponse {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AgentProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: 'agent' | 'admin';
+  createdAt: Date;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -24,9 +41,20 @@ export class AgentAuthService {
   private apiUrl = `${environment.apiUrl}/agent`;
   isAuthenticated = signal<boolean>(false);
 
+  readonly agentProfile = signal<AgentProfile>({} as AgentProfile);
+
   checkAuthStatus() {
-    this.http.get(`${this.apiUrl}/me`).subscribe({
-      next: () => this.isAuthenticated.set(true),
+    this.http.get<ProfileResponse>(`${this.apiUrl}/me`).subscribe({
+      next: (result) => {
+        this.isAuthenticated.set(true);
+        this.agentProfile.set({
+          id: result._id,
+          email: result.email,
+          name: result.name,
+          role: result.role as 'agent' | 'admin',
+          createdAt: new Date(result.createdAt),
+        });
+      },
       error: () => this.isAuthenticated.set(false),
     });
   }
