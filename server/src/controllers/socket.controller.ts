@@ -83,11 +83,12 @@ export function customerMessageHandler(io: IOServerType, socket: SocketType) {
 
       const newTicketId = newTicket._id.toString();
       io.to(AGENTS_ROOM).emit("unassigned_ticket", {
-        ticketId: newTicketId,
+        id: newTicketId,
         createdAt: newTicket.createdAt,
         priority: newTicket.priority,
         subject: text,
         customerName,
+        status: "open",
       });
       io.to(customerRoom(sessionId)).emit("system_message", {
         text: SYSTEM_MESSAGES.ticketCreated(newTicketId),
@@ -124,6 +125,22 @@ export function customerJoinHandler(_io: IOServerType, socket: SocketType) {
     console.log(
       `${customerName} (${sessionId}) joined ${customerRoom(sessionId)}`
     );
+  });
+}
+
+export function agentJoinHandler(_io: IOServerType, socket: SocketType) {
+  socket.on("agent_join", (payload, cb) => {
+    const { agentId } = payload;
+    if (!agentId) {
+      return cb?.({ ok: false });
+    }
+
+    socket.data.userType = "agent";
+    socket.data.agentId = agentId;
+
+    socket.join(AGENTS_ROOM);
+
+    console.log(`Agent ${agentId} joined`);
   });
 }
 

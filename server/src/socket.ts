@@ -2,6 +2,7 @@ import { Server as IOServer, Socket } from "socket.io";
 import type { Server } from "node:http";
 import dotenv from "dotenv";
 import {
+  agentJoinHandler,
   customerJoinHandler,
   customerMessageHandler,
 } from "./controllers/socket.controller";
@@ -44,11 +45,12 @@ interface SystemMessagePayload {
 }
 
 interface UnassignedTicketPayload {
-  ticketId: string;
+  id: string;
   subject: string;
   customerName: string;
   priority: "high" | "low" | "medium";
   createdAt: Date;
+  status: "open";
 }
 
 interface ClientToServerEvents {
@@ -132,6 +134,7 @@ export function createSocketServer(httpServer: Server) {
 
     customerJoinHandler(io, socket);
     customerMessageHandler(io, socket);
+    agentJoinHandler(io, socket);
 
     socket.on("disconnect", () => {
       console.log(`Socket disconnected ${socket.id}`);
