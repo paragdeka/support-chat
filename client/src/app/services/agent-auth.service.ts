@@ -41,7 +41,7 @@ export class AgentAuthService {
   private apiUrl = `${environment.apiUrl}/agent`;
   isAuthenticated = signal<boolean>(false);
 
-  readonly agentProfile = signal<AgentProfile>({} as AgentProfile);
+  readonly agentProfile = signal<AgentProfile | undefined>(undefined);
 
   checkAuthStatus() {
     this.http.get<ProfileResponse>(`${this.apiUrl}/me`).subscribe({
