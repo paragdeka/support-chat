@@ -12,7 +12,7 @@ interface CustomerMessagePayload extends CustomerJoinPayload {
   text: string;
 }
 
-interface TypingPayload {
+export interface TypingPayload {
   ticketId: string;
   sessionId?: string;
   agentId?: string;

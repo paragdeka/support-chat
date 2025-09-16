@@ -1,4 +1,33 @@
 @import 'tailwindcss';
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+.mat-mdc-row {
+  @apply h-0!;
+}
+
+.mat-mdc-row:nth-child(odd) {
+  @apply bg-gray-100!;
+}
+
+.mat-mdc-cell {
+  @apply border-none! py-3!;
+}
+
+.mat-mdc-table {
+  @apply min-w-[700px]! border-1! border-gray-300!;
+}
+
+.mat-mdc-header-row {
+  @apply h-0!;
+}
+.mat-mdc-header-cell {
+  @apply py-4! bg-gray-300! border-none!;
+}

@@ -15,7 +15,7 @@ export class Sidebar {
   toggleClicked = output();
 
   navItems = [
-    { name: 'Dashboard', route: '/dashboard', icon: 'space_dashboard' },
+    { name: 'Dashboard', route: '/support/dashboard', icon: 'space_dashboard' },
     { name: 'Chats', route: '/chats', icon: 'chat' },
     { name: 'Settings', route: '/settings', icon: 'settings' },
   ];
