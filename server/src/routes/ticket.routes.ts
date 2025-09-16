@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { listTickets } from "../controllers/ticket.controller";
+import { listTicketsWithFirstMessage } from "../controllers/ticket.controller";
 import { requireAgentAuth } from "../middlewares/agent-auth.middleware";
 
 const router = Router();
 
-router.get("/", requireAgentAuth, listTickets);
+router.get("/", requireAgentAuth, listTicketsWithFirstMessage);
 
 export default router;
