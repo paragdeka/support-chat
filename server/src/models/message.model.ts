@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 export interface MessageType {
-  sessionId: string;
+  sessionId?: string;
   sender: "customer" | "agent" | "system";
   text: string;
   ticketId?: mongoose.Types.ObjectId | null;
@@ -13,7 +13,15 @@ export interface MessageType {
 
 const MessageSchema = new mongoose.Schema(
   {
-    sessionId: { type: String, required: true },
+    sessionId: {
+      type: String,
+      required: [
+        function (this: MessageType) {
+          return this.sender === "customer";
+        },
+        'sessionId is required when sender is "customer"',
+      ],
+    },
     sender: {
       type: String,
       enum: ["customer", "agent", "system"],
