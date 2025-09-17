@@ -3,11 +3,24 @@ import type { Server } from "node:http";
 import dotenv from "dotenv";
 import {
   agentJoinHandler,
+  agentJoinTicketRoomHandler,
+  agentMessageHandler,
   customerJoinHandler,
   customerMessageHandler,
+  ticketAssignHandler,
 } from "./controllers/socket.controller";
 
 type UserType = "customer" | "agent";
+
+interface ChatMessagePayload {
+  ticketId: string;
+  from: "customer" | "agent";
+  fromId: string;
+  fromName: string;
+  text: string;
+  id: string;
+  createdAt: Date;
+}
 
 interface CustomerJoinPayload {
   sessionId: string;
@@ -79,12 +92,17 @@ interface ClientToServerEvents {
     cb?: (ack: { ok: boolean }) => void
   ) => void;
   typing: (p: TypingPayload) => void;
+  agent_join_ticket_room: (
+    p: TicketAssignPayload,
+    cb?: (ack: { ok: boolean; error?: string }) => void
+  ) => void;
 }
 
 interface ServerToClientEvents {
   typing: (p: TypingPayload) => void;
   system_message: (p: SystemMessagePayload) => void;
   unassigned_ticket: (p: UnassignedTicketPayload) => void;
+  chat_message: (p: ChatMessagePayload) => void;
 }
 
 interface InterServerEvents {}
@@ -93,6 +111,7 @@ interface SocketData {
   agentId?: string;
   sessionId?: string;
   customerName?: string;
+  agentName?: string;
 }
 
 export type IOServerType = IOServer<
@@ -116,6 +135,9 @@ export const ticketRoom = (ticketId: string) => `ticket:${ticketId}`;
 dotenv.config();
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:4200";
 
+export const customerSocketsMap = new Map<string, SocketType>();
+export const agentSocketsMap = new Map<string, SocketType>();
+
 export function createSocketServer(httpServer: Server) {
   const io = new IOServer<
     ClientToServerEvents,
@@ -135,9 +157,19 @@ export function createSocketServer(httpServer: Server) {
     customerJoinHandler(io, socket);
     customerMessageHandler(io, socket);
     agentJoinHandler(io, socket);
+    ticketAssignHandler(io, socket);
+    agentMessageHandler(io, socket);
+    agentJoinTicketRoomHandler(io, socket);
 
     socket.on("disconnect", () => {
       console.log(`Socket disconnected ${socket.id}`);
+      if (socket.data.userType === "customer" && socket.data.sessionId) {
+        customerSocketsMap.delete(socket.data.sessionId);
+      }
+
+      if (socket.data.userType === "agent" && socket.data.agentId) {
+        agentSocketsMap.delete(socket.data.agentId);
+      }
     });
   });
 }
