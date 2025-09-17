@@ -22,7 +22,7 @@ body {
 }
 
 .mat-mdc-table {
-  @apply min-w-[700px]! border-1! border-gray-300!;
+  @apply min-w-[500px]! border-1! border-gray-300!;
 }
 
 .mat-mdc-header-row {

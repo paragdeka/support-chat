@@ -1,7 +1,9 @@
 <div class="mt-8 overflow-scroll h-[calc(100vh-96px)]">
   <div class="mat-elevation-z4 flex flex-col items-center overflow-hidden">
     <h2 class="text-2xl mb-4">All Tickets</h2>
-    @if (dataSource.data.length > 0) {
+    @if (isFetching()) {
+    <mat-spinner />
+    }@else {
     <mat-table [dataSource]="dataSource" matSort>
       <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
@@ -63,8 +65,6 @@
         class="hover:bg-gray-200! cursor-pointer!"
       ></tr>
     </mat-table>
-    }@else {
-    <mat-spinner />
     }
   </div>
 </div>

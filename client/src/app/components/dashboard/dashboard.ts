@@ -6,6 +6,7 @@ import { CommonModule, TitleCasePipe } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AgentSocketService } from '../../services/agent-socket.service';
 import { formatRelativeDate } from '../../utils';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,6 +24,9 @@ export class Dashboard implements OnInit {
   columns: string[] = ['id', 'status', 'customerName', 'issue', 'priority', 'createdAt'];
   dataSource = new MatTableDataSource<TicketRow>([]);
   tickets = this.ticketService.tickets;
+
+  private router = inject(Router);
+  isFetching = this.ticketService.isFetching;
 
   private agentSocketService = inject(AgentSocketService);
   newTicket = this.agentSocketService.unassignedTicket;
@@ -53,6 +57,6 @@ export class Dashboard implements OnInit {
   }
 
   onRowClick(row: TicketRow) {
-    console.log('Clicked row:', row);
+    this.router.navigate([`/support/ticket/${row.id}`]);
   }
 }
