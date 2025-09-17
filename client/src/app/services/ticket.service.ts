@@ -9,9 +9,12 @@ interface MessageResponse {
   sender: string;
   text: string;
   ticketId: string;
-  customerName: string;
+  customerName?: string;
   createdAt: string;
   updatedAt: string;
+  agentId: {
+    name: string;
+  };
 }
 
 interface TicketResponse {
@@ -33,6 +36,15 @@ export interface TicketRow {
   createdAt: string;
 }
 
+export interface MessageDisplay {
+  id: string;
+  sender: 'agent' | 'customer' | 'system';
+  text: string;
+  createdAt: string;
+  customerName?: string;
+  agentName?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -41,25 +53,36 @@ export class TicketService {
   private apiUrl = `${environment.apiUrl}/ticket`;
 
   readonly tickets = signal<TicketRow[]>([]);
+  readonly isFetching = signal<boolean>(false);
 
   listAllTickets() {
+    this.isFetching.set(true);
     this.http.get<TicketResponse[]>(`${this.apiUrl}`).subscribe({
       next: (results) => {
         console.log('Tickets: ', results);
         const ticketRows: TicketRow[] = results.map((res) => ({
           id: res._id,
           createdAt: formatRelativeDate(new Date(res.createdAt)),
-          customerName: res.messages[0].customerName,
+          customerName: res.messages[0].customerName!,
           priority: res.priority as TicketRow['priority'],
           issue: res.messages[0].text,
           status: res.status as TicketRow['status'],
         }));
 
         this.tickets.set(ticketRows);
+        this.isFetching.set(false);
       },
       error: (err) => {
         console.error('Tickets fetching failed: ', err);
       },
     });
+  }
+
+  getTicketDetail(id: string) {
+    return this.http.get<TicketResponse>(`${this.apiUrl}/${id}`);
+  }
+
+  getTicketMessageHistory(sessionId: string) {
+    return this.http.get<TicketResponse>(`${this.apiUrl}/history/${sessionId}`);
   }
 }

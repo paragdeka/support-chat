@@ -2,6 +2,18 @@ import { inject, Injectable, signal } from '@angular/core';
 import { TypingPayload } from './customer-socket.service';
 import { io, Socket } from 'socket.io-client';
 import { AgentAuthService } from './agent-auth.service';
+import { MessageDisplay } from './ticket.service';
+import { formatRelativeDate } from '../utils';
+
+export interface ChatMessagePayload {
+  from: 'customer' | 'agent';
+  fromId: string;
+  fromName: string;
+  text: string;
+  id: string;
+  createdAt: Date;
+  ticketId: string;
+}
 
 interface AgentJoinPayload {
   agentId: string;
@@ -39,11 +51,16 @@ interface ClientToServerEvents {
     p: AgentMessagePayload,
     cb?: (ack: { ok: boolean; error?: string }) => void
   ) => void;
+  agent_join_ticket_room: (
+    p: TicketAssignPayload,
+    cb?: (ack: { ok: boolean; error?: string }) => void
+  ) => void;
 }
 
 interface ServerToClientEvents {
   typing: (p: TypingPayload) => void;
   unassigned_ticket: (p: UnassignedTicketPayload) => void;
+  chat_message: (p: ChatMessagePayload) => void;
 }
 
 @Injectable({
@@ -53,7 +70,31 @@ export class AgentSocketService {
   private socket!: Socket<ServerToClientEvents, ClientToServerEvents>;
   private agentAuthService = inject(AgentAuthService);
 
+  readonly isConnected = signal<boolean>(false);
   readonly unassignedTicket = signal<UnassignedTicketPayload | undefined>(undefined);
+  readonly messages = signal<Record<string, MessageDisplay[]>>({});
+  readonly selfAssignSuccessful = signal<boolean>(false);
+
+  private addMessage(msg: ChatMessagePayload) {
+    if (msg.from === 'customer') {
+      this.messages.update((prev) => {
+        const arr = prev[msg.ticketId] ?? [];
+        return {
+          ...prev,
+          [msg.ticketId]: [
+            ...arr,
+            {
+              id: msg.id,
+              createdAt: formatRelativeDate(msg.createdAt),
+              sender: msg.from,
+              text: msg.text,
+              customerName: msg.fromName,
+            },
+          ],
+        };
+      });
+    }
+  }
 
   private addUnassignedTicket(ticket: UnassignedTicketPayload) {
     this.unassignedTicket.set(ticket);
@@ -74,11 +115,60 @@ export class AgentSocketService {
           console.error('Agent failed to join.');
         }
       });
+      this.isConnected.set(true);
+    });
+
+    this.socket.on('disconnect', () => {
+      this.isConnected.set(false);
     });
 
     this.socket.on('unassigned_ticket', (ticket) => {
       console.log('Unassigned ticket through WS: ', ticket);
       this.addUnassignedTicket(ticket);
     });
+
+    this.socket.on('chat_message', (payload) => {
+      console.log('Chat from customer: ', payload);
+      this.addMessage(payload);
+    });
+  }
+
+  selfAssignTicket(ticketId: string) {
+    const agentId = this.agentAuthService.agentProfile()?.id;
+    if (agentId) {
+      this.socket.emit(
+        'ticket_assign',
+        {
+          ticketId,
+          agentId,
+        },
+        (ack) => {
+          if (ack.ok) {
+            this.selfAssignSuccessful.set(true);
+          }
+        }
+      );
+    }
+  }
+
+  sendAgentMessage(text: string, ticketId: string) {
+    const agentId = this.agentAuthService.agentProfile()?.id;
+    if (agentId) {
+      this.socket.emit('agent_message', {
+        agentId,
+        text,
+        ticketId,
+      });
+    }
+  }
+
+  rejoinTicketRoom(ticketId: string) {
+    const agentId = this.agentAuthService.agentProfile()?.id;
+    if (agentId) {
+      this.socket.emit('agent_join_ticket_room', {
+        agentId,
+        ticketId,
+      });
+    }
   }
 }

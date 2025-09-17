@@ -1,0 +1,23 @@
+@if (ticketDetail()?.status === 'open') {
+<button
+  mat-button
+  class="m-4 bg-green-200! rounded-lg! border-1! border-gray-200! hover:bg-green-300! text-gray-800!"
+  (click)="onSelfAssignClick()"
+>
+  Self Assign
+</button>
+} @if (ticketDetail()?.status === 'in-progress') {
+<button
+  mat-button
+  class="m-4 bg-red-200! rounded-lg! border-1! border-gray-200! hover:bg-red-300! text-gray-800!"
+  (click)="onCloseIssue()"
+>
+  Close Issue
+</button>
+}
+
+<app-chat-window
+  self="agent"
+  [messagesInput]="combinedMessages()"
+  (messageSent)="sendMessage($event)"
+/>

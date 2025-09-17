@@ -16,6 +16,11 @@ export const routes: Routes = [
         path: 'dashboard',
         loadComponent: () => import('./components/dashboard/dashboard').then((m) => m.Dashboard),
       },
+      {
+        path: 'ticket/:id',
+        loadComponent: () =>
+          import('./components/ticket-detail/ticket-detail').then((m) => m.TicketDetail),
+      },
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
     ],
   },
