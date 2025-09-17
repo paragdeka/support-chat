@@ -7,6 +7,7 @@ export interface TicketType {
   priority: "low" | "medium" | "high";
   createdAt: Date;
   updatedAt: Date;
+  agentId?: string;
 }
 
 const TicketSchema = new mongoose.Schema(
@@ -30,9 +31,16 @@ const TicketSchema = new mongoose.Schema(
       enum: ["low", "medium", "high"],
       required: true,
     },
+    agentId: {
+      type: mongoose.Types.ObjectId,
+      ref: "Agent",
+      default: null,
+    },
   },
   { timestamps: true }
 );
+
+TicketSchema.index({ sessionId: 1 });
 
 export type TicketModel = mongoose.Model<TicketType>;
 
