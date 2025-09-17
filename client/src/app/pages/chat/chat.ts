@@ -1,61 +1,55 @@
-import { CommonModule } from '@angular/common';
-import { Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CustomerSocketService } from '../../services/customer-socket.service';
 import { environment } from '../../../environments/environment';
-
-export interface ChatMessage {
-  sender: 'agent' | 'user' | 'system';
-  text: string;
-  timestamp: number;
-}
+import { ChatWindow } from '../../components/chat-window/chat-window';
+import { MatIconModule } from '@angular/material/icon';
+import { CustomerDataService } from '../../services/customer-data.service';
+import { MessageDisplay, TicketService } from '../../services/ticket.service';
+import { formatRelativeDate } from '../../utils';
 
 @Component({
   selector: 'app-chat',
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-  ],
+  imports: [ChatWindow, MatIconModule],
   templateUrl: './chat.html',
 })
 export class Chat implements OnInit, OnDestroy {
   private customerSocketService = inject(CustomerSocketService);
+  private customerDataService = inject(CustomerDataService);
+  private ticketService = inject(TicketService);
+  private messageHistory = signal<MessageDisplay[]>([]);
 
   ngOnInit(): void {
     this.customerSocketService.connect(environment.baseUrl);
+
+    const customer = this.customerDataService.getOrCreate();
+    if (customer.id) {
+      this.ticketService.getTicketMessageHistory(customer.id).subscribe({
+        next: (result) => {
+          const msgs: MessageDisplay[] = result.messages.map(
+            (msg): MessageDisplay => ({
+              sender: msg.sender as MessageDisplay['sender'],
+              text: msg.text,
+              createdAt: formatRelativeDate(new Date(msg.createdAt)),
+              customerName: msg.customerName,
+              agentName: msg.agentId?.name,
+              id: msg._id,
+            })
+          );
+          console.log(msgs);
+          this.messageHistory.set(msgs);
+        },
+      });
+    }
   }
   ngOnDestroy(): void {
     this.customerSocketService.disconnect();
   }
 
-  isOpen = signal(false);
   messages = this.customerSocketService.messages;
+  combinedMessages = computed(() => [...this.messageHistory(), ...this.messages()]);
 
-  private fb = inject(FormBuilder);
-  messageForm = this.fb.group({
-    message: ['', [Validators.required]],
-  });
-
-  toggleChat() {
-    this.isOpen.update((v) => !v);
-  }
-
-  onSubmit() {
-    if (this.messageForm.valid) {
-      const text = this.messageForm.value.message?.trim()!;
-      this.customerSocketService.sendMessage(text);
-
-      this.messageForm.reset();
-    }
+  sendCustomerMessage({ text }: { text: string }) {
+    console.log('Msg: ', text);
+    this.customerSocketService.sendMessage(text);
   }
 }

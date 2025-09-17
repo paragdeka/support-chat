@@ -1,7 +1,9 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Socket, io } from 'socket.io-client';
 import { CustomerDataService } from './customer-data.service';
-import { ChatMessage } from '../pages/chat/chat';
+import { ChatMessagePayload } from './agent-socket.service';
+import { MessageDisplay } from './ticket.service';
+import { formatRelativeDate } from '../utils';
 
 interface CustomerJoinPayload {
   sessionId: string;
@@ -35,6 +37,7 @@ interface ClientToServerEvents {
 interface ServerToClientEvents {
   typing: (p: TypingPayload) => void;
   system_message: (p: SystemMessagePayload) => void;
+  chat_message: (p: ChatMessagePayload) => void;
 }
 
 @Injectable({
@@ -44,10 +47,21 @@ export class CustomerSocketService {
   private socket!: Socket<ServerToClientEvents, ClientToServerEvents>;
   private customerDataService = inject(CustomerDataService);
 
-  readonly messages = signal<ChatMessage[]>([]);
+  readonly messages = signal<MessageDisplay[]>([]);
 
-  private addMessage(msg: ChatMessage) {
-    this.messages.update((prev) => [...prev, msg]);
+  private addMessage(msg: ChatMessagePayload) {
+    if (msg.from === 'agent') {
+      this.messages.update((prev) => [
+        ...prev,
+        {
+          createdAt: formatRelativeDate(msg.createdAt),
+          id: msg.id,
+          sender: msg.from,
+          text: msg.text,
+          agentName: msg.fromName,
+        },
+      ]);
+    }
   }
 
   connect(url: string) {
@@ -67,7 +81,19 @@ export class CustomerSocketService {
     });
 
     this.socket.on('system_message', ({ text }) => {
-      this.addMessage({ text, sender: 'system', timestamp: Date.now() });
+      this.messages.update((prev) => [
+        ...prev,
+        {
+          createdAt: formatRelativeDate(new Date()),
+          id: crypto.randomUUID(),
+          sender: 'system',
+          text,
+        },
+      ]);
+    });
+
+    this.socket.on('chat_message', (payload) => {
+      this.addMessage(payload);
     });
   }
 
@@ -91,6 +117,14 @@ export class CustomerSocketService {
       }
     );
 
-    this.addMessage({ text, sender: 'user', timestamp: Date.now() });
+    this.messages.update((prev) => [
+      ...prev,
+      {
+        createdAt: formatRelativeDate(new Date()),
+        id: crypto.randomUUID(),
+        sender: 'customer',
+        text,
+      },
+    ]);
   }
 }
