@@ -3,6 +3,7 @@ import { Signup } from './pages/signup/signup';
 import { Login } from './pages/login/login';
 import { Chat } from './pages/chat/chat';
 import { Support } from './pages/support/support';
+import { authGuard } from './auth-guard';
 
 export const routes: Routes = [
   { path: 'signup', component: Signup },
@@ -11,6 +12,7 @@ export const routes: Routes = [
   {
     path: 'support',
     component: Support,
+    canActivate: [authGuard],
     children: [
       {
         path: 'dashboard',
@@ -24,5 +26,5 @@ export const routes: Routes = [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
     ],
   },
-  { path: '', redirectTo: 'support', pathMatch: 'full' },
+  { path: '', redirectTo: 'support/dashboard', pathMatch: 'full' },
 ];
