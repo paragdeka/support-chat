@@ -30,6 +30,44 @@ export const listTicketsWithFirstMessage = async (
   }
 };
 
+interface TicketQuery {
+  status?: "open" | "in-progress" | "closed";
+  order?: "asc" | "desc";
+  agent?: string;
+}
+
+export const getTickets = async (
+  req: Request<{}, {}, {}, TicketQuery>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const agentId = req.session.agentId;
+    if (!agentId)
+      return res.status(401).json({ message: "Not authenticated." });
+    if (!mongoose.Types.ObjectId.isValid(agentId)) {
+      return res.status(400).json({ message: "Invalid session agent id." });
+    }
+
+    const { status, order, agent } = req.query;
+
+    console.log({ status, order, agent });
+
+    const filter: any = {};
+    if (status) filter.status = status;
+    if (agent) filter.agentId = agentId;
+    const sortOrder = order === "desc" ? -1 : 1;
+    console.log("filter: ", filter, sortOrder);
+
+    const tickets = await Ticket.find(filter, { messages: { $slice: 1 } })
+      .sort({ createdAt: sortOrder })
+      .populate("messages");
+    res.json(tickets);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getTicket = async (
   req: Request<{ id: string }>,
   res: Response,
