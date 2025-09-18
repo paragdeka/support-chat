@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CustomerSocketService } from '../../services/customer-socket.service';
 import { environment } from '../../../environments/environment';
 import { ChatWindow } from '../../components/chat-window/chat-window';
@@ -17,6 +17,7 @@ export class Chat implements OnInit, OnDestroy {
   private customerDataService = inject(CustomerDataService);
   private ticketService = inject(TicketService);
   private messageHistory = signal<MessageDisplay[]>([]);
+  readonly chatDisabled = signal<boolean>(false);
 
   ngOnInit(): void {
     this.customerSocketService.connect(environment.baseUrl);
@@ -47,6 +48,16 @@ export class Chat implements OnInit, OnDestroy {
 
   messages = this.customerSocketService.messages;
   combinedMessages = computed(() => [...this.messageHistory(), ...this.messages()]);
+
+  private syncTicketClose = effect(() => {
+    const msgs = this.messages();
+    const last = msgs[msgs.length - 1];
+
+    // using this as hack, cause I'm running out of time
+    if (last.sender === 'system' && last.text.includes('has been closed')) {
+      this.chatDisabled.set(true);
+    }
+  });
 
   sendCustomerMessage({ text }: { text: string }) {
     console.log('Msg: ', text);

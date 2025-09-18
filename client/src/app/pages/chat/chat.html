@@ -1,13 +1,20 @@
 <div class="w-screen h-screen flex justify-center items-center">
   <div>
-    <div class="bg-green-400 p-4 flex gap-2 items-center">
-      <mat-icon>support_agent</mat-icon>
-      <h2 class="text-2xl text-bold">Support</h2>
+    <div
+      class="bg-neutral-100 border-x-1 border-t-1 border-gray-300 w px-4 py-3 w-full flex justify-between items-center"
+    >
+      <div class="flex gap-1 items-center">
+        <div class="flex gap-1 items-center">
+          <p class="text-3xl">☎️</p>
+          <p class="text-xl mt-1">Support</p>
+        </div>
+      </div>
     </div>
     <app-chat-window
       [messagesInput]="combinedMessages()"
       self="customer"
       (messageSent)="sendCustomerMessage($event)"
+      [disabled]="chatDisabled()"
     />
   </div>
 </div>
