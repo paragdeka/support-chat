@@ -37,7 +37,7 @@ body {
 }
 
 .header-cell {
-  @apply px-3 py-4 text-left font-semibold;
+  @apply p-3 h-12 text-left font-semibold;
 }
 
 .table-row {
@@ -45,7 +45,7 @@ body {
 }
 
 .table-header {
-  @apply bg-gray-300;
+  @apply bg-neutral-200;
 }
 
 .table-row:nth-child(even) {
