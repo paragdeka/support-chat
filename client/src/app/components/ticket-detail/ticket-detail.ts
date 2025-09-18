@@ -33,10 +33,10 @@ export class TicketDetail implements OnInit {
 
   private updateTicketStatus = effect(() => {
     const id = this.route.snapshot.paramMap.get('id');
-    if (id && this.agentSocketService.ticketStatuses()[id].selfAssigned) {
+    if (id && this.agentSocketService.ticketStatuses()[id]?.selfAssigned) {
       this.ticketDetail.update((prev) => (prev ? { ...prev, status: 'in-progress' } : prev));
     }
-    if (id && this.agentSocketService.ticketStatuses()[id].ticketClosed) {
+    if (id && this.agentSocketService.ticketStatuses()[id]?.ticketClosed) {
       this.ticketDetail.update((prev) => (prev ? { ...prev, status: 'closed' } : prev));
       this.chatDisabled.set(true);
     }
@@ -52,16 +52,18 @@ export class TicketDetail implements OnInit {
     if (id) {
       this.ticketSerivce.getTicketDetail(id).subscribe({
         next: (result) => {
-          const msgs: MessageDisplay[] = result.messages.map(
-            (msg): MessageDisplay => ({
-              sender: msg.sender as MessageDisplay['sender'],
-              text: msg.text,
-              createdAt: formatRelativeDate(new Date(msg.createdAt)),
-              customerName: msg.customerName,
-              agentName: msg.agentId?.name,
-              id: msg._id,
-            })
-          );
+          const msgs: MessageDisplay[] = result.messages
+            .filter((msg) => msg.sender !== 'system')
+            .map(
+              (msg): MessageDisplay => ({
+                sender: msg.sender as MessageDisplay['sender'],
+                text: msg.text,
+                createdAt: formatRelativeDate(new Date(msg.createdAt)),
+                customerName: msg.customerName,
+                agentName: msg.agentId?.name,
+                id: msg._id,
+              })
+            );
 
           const ticketD: TicketDetailType = {
             id: result._id,
