@@ -29,6 +29,7 @@ export class NotificationCenter {
   }
 
   onNotificationClick(ticketId: string) {
+    this.notifications.update((prev) => prev.filter((n) => n.id !== ticketId));
     this.router.navigate([`/support/ticket/${ticketId}`]);
   }
 }
