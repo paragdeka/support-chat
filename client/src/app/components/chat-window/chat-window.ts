@@ -1,5 +1,5 @@
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { Component, inject, input, OnInit, output, signal } from '@angular/core';
+import { Component, effect, inject, input, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,10 +24,19 @@ export class ChatWindow {
   messagesInput = input<MessageDisplay[]>([]);
   self = input<MessageDisplay['sender']>('customer');
   messageSent = output<{ text: string }>();
+  disabled = input<boolean>(false);
 
   private fb = inject(FormBuilder);
   messageForm = this.fb.group({
     message: ['', [Validators.required]],
+  });
+
+  private chatDisable = effect(() => {
+    if (this.disabled()) {
+      this.messageForm.disable();
+    } else {
+      this.messageForm.enable();
+    }
   });
 
   onSubmit() {

@@ -44,6 +44,7 @@
       self="agent"
       [messagesInput]="combinedMessages()"
       (messageSent)="sendMessage($event)"
+      [disabled]="chatDisabled()"
     />
   </div>
 </div>

@@ -61,7 +61,12 @@
   <div class="flex items-center border-t border-gray-200 p-2">
     <form [formGroup]="messageForm" (ngSubmit)="onSubmit()" class="flex gap-2 w-full">
       <mat-form-field class="flex-1" appearance="outline">
-        <input matInput formControlName="message" placeholder="Type your message..." />
+        <input
+          class="disabled:cursor-not-allowed"
+          matInput
+          formControlName="message"
+          placeholder="Type your message..."
+        />
       </mat-form-field>
       <button mat-icon-button color="primary" type="submit">
         <mat-icon>send</mat-icon>

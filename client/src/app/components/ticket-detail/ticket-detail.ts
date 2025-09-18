@@ -20,6 +20,7 @@ export class TicketDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private ticketSerivce = inject(TicketService);
   private agentSocketService = inject(AgentSocketService);
+  readonly chatDisabled = signal<boolean>(false);
 
   private retryJoiningTicketRoom = effect(() => {
     if (this.agentSocketService.isConnected()) {
@@ -37,6 +38,7 @@ export class TicketDetail implements OnInit {
     }
     if (id && this.agentSocketService.ticketStatuses()[id].ticketClosed) {
       this.ticketDetail.update((prev) => (prev ? { ...prev, status: 'closed' } : prev));
+      this.chatDisabled.set(true);
     }
   });
 
@@ -73,6 +75,10 @@ export class TicketDetail implements OnInit {
 
           console.log('Ticket Detail: ', ticketD);
           this.ticketDetail.set(ticketD);
+
+          if (ticketD.status === 'closed') {
+            this.chatDisabled.set(true);
+          }
         },
         error: (err) => {
           console.error('Ticket detail fetch failed: ', err);
