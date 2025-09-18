@@ -7,6 +7,7 @@ import { AgentSocketService } from '../../services/agent-socket.service';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { Title } from '@angular/platform-browser';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 export interface TicketDetailType extends TicketRow {
   messages: MessageDisplay[];
@@ -14,7 +15,7 @@ export interface TicketDetailType extends TicketRow {
 
 @Component({
   selector: 'app-ticket-detail',
-  imports: [ChatWindow, MatButtonModule, CommonModule],
+  imports: [ChatWindow, MatButtonModule, CommonModule, MatProgressSpinnerModule],
   templateUrl: './ticket-detail.html',
 })
 export class TicketDetail implements OnInit {
@@ -23,6 +24,7 @@ export class TicketDetail implements OnInit {
   private agentSocketService = inject(AgentSocketService);
   readonly chatDisabled = signal<boolean>(false);
   private titleService = inject(Title);
+  readonly ticketFetching = signal<boolean>(false);
 
   private retryJoiningTicketRoom = effect(() => {
     if (this.agentSocketService.isConnected()) {
@@ -62,8 +64,10 @@ export class TicketDetail implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
+      this.ticketFetching.set(true);
       this.ticketSerivce.getTicketDetail(id).subscribe({
         next: (result) => {
+          this.ticketFetching.set(false);
           const msgs: MessageDisplay[] = result.messages
             .filter((msg) => msg.sender !== 'system')
             .map(
@@ -95,6 +99,7 @@ export class TicketDetail implements OnInit {
           }
         },
         error: (err) => {
+          this.ticketFetching.set(false);
           console.error('Ticket detail fetch failed: ', err);
         },
       });

@@ -7,6 +7,11 @@
     >
       <div class="flex gap-1 items-center">
         <p class="text-4xl">🎫</p>
+        @if (ticketFetching()) {
+        <div class="ml-8">
+          <mat-spinner diameter="25" />
+        </div>
+        } @else {
         <div>
           <p>Ticket #{{ ticketDetail()?.id?.slice(-6) }}</p>
           <p
@@ -20,6 +25,7 @@
             {{ ticketDetail()?.status | titlecase }}
           </p>
         </div>
+        }
       </div>
 
       <div>
@@ -45,6 +51,7 @@
       [messagesInput]="combinedMessages()"
       (messageSent)="sendMessage($event)"
       [disabled]="chatDisabled()"
+      [showSpinner]="ticketFetching()"
     />
   </div>
 </div>

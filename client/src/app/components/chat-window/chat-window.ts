@@ -15,6 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MessageDisplay } from '../../services/ticket.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-chat-window',
@@ -26,6 +27,7 @@ import { MessageDisplay } from '../../services/ticket.service';
     MatFormFieldModule,
     MatInputModule,
     TitleCasePipe,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './chat-window.html',
 })
@@ -35,6 +37,7 @@ export class ChatWindow {
   messageSent = output<{ text: string }>();
   disabled = input<boolean>(false);
   chatContainer = viewChild<ElementRef>('chatContainer');
+  showSpinner = input<boolean>(false);
 
   private scrollChat = effect(() => {
     this.messagesInput().length;

@@ -15,6 +15,7 @@
       self="customer"
       (messageSent)="sendCustomerMessage($event)"
       [disabled]="chatDisabled()"
+      [showSpinner]="msgHistoryFetching()"
     />
   </div>
 </div>

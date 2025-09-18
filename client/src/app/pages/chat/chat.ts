@@ -20,6 +20,7 @@ export class Chat implements OnInit, OnDestroy {
   private messageHistory = signal<MessageDisplay[]>([]);
   readonly chatDisabled = signal<boolean>(false);
   private titleService = inject(Title);
+  readonly msgHistoryFetching = signal<boolean>(false);
 
   ngOnInit(): void {
     this.titleService.setTitle('Customer Chat');
@@ -27,8 +28,10 @@ export class Chat implements OnInit, OnDestroy {
 
     const customer = this.customerDataService.getOrCreate();
     if (customer.id) {
+      this.msgHistoryFetching.set(true);
       this.ticketService.getTicketMessageHistory(customer.id).subscribe({
         next: (result) => {
+          this.msgHistoryFetching.set(false);
           const msgs: MessageDisplay[] = result.messages.map(
             (msg): MessageDisplay => ({
               sender: msg.sender as MessageDisplay['sender'],
@@ -41,6 +44,10 @@ export class Chat implements OnInit, OnDestroy {
           );
           console.log(msgs);
           this.messageHistory.set(msgs);
+        },
+        error: (err) => {
+          this.msgHistoryFetching.set(false);
+          console.error(err);
         },
       });
     }

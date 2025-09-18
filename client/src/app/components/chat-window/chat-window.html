@@ -10,7 +10,11 @@
 
   <!-- messages -->
   <div #chatContainer class="flex-1 overflow-y-auto bg-gray-50 p-3 flex flex-col">
-    @for (msg of messagesInput(); track msg.id) {
+    @if (showSpinner()) {
+    <div class="h-full flex items-center justify-center">
+      <mat-spinner diameter="40" />
+    </div>
+    } @else { @for (msg of messagesInput(); track msg.id) {
     <div class="flex mb-4">
       @if (msg.sender !== self()) {
       <div class="rounded-full w-8 h-8 bg-green-700 flex justify-center items-center">
@@ -57,7 +61,7 @@
         </div>
       </div>
     </div>
-    }
+    }}
   </div>
 
   <!-- input -->
