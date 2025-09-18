@@ -31,3 +31,23 @@ body {
 .mat-mdc-header-cell {
   @apply py-4! bg-gray-300! border-none!;
 }
+
+.table-cell {
+  @apply px-3 py-2 text-left;
+}
+
+.header-cell {
+  @apply px-3 py-4 text-left font-semibold;
+}
+
+.table-row {
+  @apply border-b border-gray-300 hover:bg-gray-200 cursor-pointer;
+}
+
+.table-header {
+  @apply bg-gray-300;
+}
+
+.table-row:nth-child(even) {
+  @apply bg-gray-100;
+}

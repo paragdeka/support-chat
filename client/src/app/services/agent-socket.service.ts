@@ -19,7 +19,7 @@ interface AgentJoinPayload {
   agentId: string;
 }
 
-interface UnassignedTicketPayload {
+export interface UnassignedTicketPayload {
   id: string;
   subject: string;
   customerName: string;
