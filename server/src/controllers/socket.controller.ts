@@ -90,9 +90,11 @@ export function customerMessageHandler(io: IOServerType, socket: SocketType) {
         await dbSession.commitTransaction();
         dbSession.endSession();
 
-        io.to(customerRoom(sessionId)).emit("system_message", {
-          text: SYSTEM_MESSAGES.ticketExists(existingTicketId),
-        });
+        if (existingTicket.status !== "closed") {
+          io.to(customerRoom(sessionId)).emit("system_message", {
+            text: SYSTEM_MESSAGES.ticketExists(existingTicketId),
+          });
+        }
         return;
       }
 
@@ -311,6 +313,31 @@ export function agentJoinTicketRoomHandler(
   });
 }
 
+export function ticketCloseHandler(io: IOServerType, socket: SocketType) {
+  socket.on("ticket_close", async (payload, cb) => {
+    const { agentId, ticketId } = payload;
+    if (!agentId || !ticketId) {
+      return cb?.({ ok: false, error: "Required fields missing." });
+    }
+    console.log(`Ticket close request by ${agentId} for ${ticketId}`);
+
+    try {
+      await Ticket.updateOne({ _id: ticketId, agentId }, { status: "closed" });
+
+      io.to(ticketRoom(ticketId)).emit("system_message", {
+        text: SYSTEM_MESSAGES.ticketClosed(ticketId),
+      });
+
+      cb?.({ ok: true });
+
+      // agent leaves ticket room
+      socket.leave(ticketRoom(ticketId));
+    } catch (error) {
+      return cb?.({ ok: false, error: "Internal Server Error" });
+    }
+  });
+}
+
 const SYSTEM_MESSAGES = {
   init: "Hello! Our team is ready to help you. Please tell us about your issue.",
   waitingTicketAssignment:
@@ -326,6 +353,8 @@ const SYSTEM_MESSAGES = {
     "There was an internal server error. Our team has been notified and is working to fix the issue. Please try again in a few minutes. We apologize for the inconvenience.",
   ticketAssigned: (agentName: string) =>
     `Your ticket has been assigned to support agent ${agentName.toUpperCase()}. Agent will review your request and be in touch with you shortly.`,
+  ticketClosed: (ticketId: string) =>
+    `Your ticket (${ticketId}) has been closed. If you have any further issues, please create a new ticket.`,
 };
 
 function randomPriority(): "high" | "medium" | "low" {

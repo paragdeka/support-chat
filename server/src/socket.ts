@@ -8,6 +8,7 @@ import {
   customerJoinHandler,
   customerMessageHandler,
   ticketAssignHandler,
+  ticketCloseHandler,
 } from "./controllers/socket.controller";
 
 type UserType = "customer" | "agent";
@@ -89,7 +90,7 @@ interface ClientToServerEvents {
   ) => void; // agent self assigns
   ticket_close: (
     p: TicketAssignPayload,
-    cb?: (ack: { ok: boolean }) => void
+    cb?: (ack: { ok: boolean; error?: string }) => void
   ) => void;
   typing: (p: TypingPayload) => void;
   agent_join_ticket_room: (
@@ -160,6 +161,7 @@ export function createSocketServer(httpServer: Server) {
     ticketAssignHandler(io, socket);
     agentMessageHandler(io, socket);
     agentJoinTicketRoomHandler(io, socket);
+    ticketCloseHandler(io, socket);
 
     socket.on("disconnect", () => {
       console.log(`Socket disconnected ${socket.id}`);
