@@ -73,7 +73,9 @@ export class AgentSocketService {
   readonly isConnected = signal<boolean>(false);
   readonly unassignedTicket = signal<UnassignedTicketPayload | undefined>(undefined);
   readonly messages = signal<Record<string, MessageDisplay[]>>({});
-  readonly selfAssignSuccessful = signal<boolean>(false);
+  readonly ticketStatuses = signal<
+    Record<string, { selfAssigned: boolean; ticketClosed: boolean }>
+  >({});
 
   private addMessage(msg: ChatMessagePayload) {
     if (msg.from === 'customer') {
@@ -144,10 +146,40 @@ export class AgentSocketService {
         },
         (ack) => {
           if (ack.ok) {
-            this.selfAssignSuccessful.set(true);
+            this.ticketStatuses.update((prev) => {
+              const val = prev[ticketId] ?? {};
+              return {
+                ...prev,
+                [ticketId]: {
+                  ...val,
+                  selfAssigned: true,
+                },
+              };
+            });
           }
         }
       );
+    }
+  }
+
+  closeTicket(ticketId: string) {
+    const agentId = this.agentAuthService.agentProfile()?.id;
+    if (agentId) {
+      this.socket.emit('ticket_close', { ticketId, agentId }, (ack) => {
+        if (ack.ok) {
+          console.log('Ticket close success!');
+          this.ticketStatuses.update((prev) => {
+            const val = prev[ticketId] ?? {};
+            return {
+              ...prev,
+              [ticketId]: {
+                ...val,
+                ticketClosed: true,
+              },
+            };
+          });
+        }
+      });
     }
   }
 

@@ -30,8 +30,12 @@ export class TicketDetail implements OnInit {
   readonly ticketDetail = signal<TicketDetailType | undefined>(undefined);
 
   private updateTicketStatus = effect(() => {
-    if (this.agentSocketService.selfAssignSuccessful()) {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id && this.agentSocketService.ticketStatuses()[id].selfAssigned) {
       this.ticketDetail.update((prev) => (prev ? { ...prev, status: 'in-progress' } : prev));
+    }
+    if (id && this.agentSocketService.ticketStatuses()[id].ticketClosed) {
+      this.ticketDetail.update((prev) => (prev ? { ...prev, status: 'closed' } : prev));
     }
   });
 
@@ -109,7 +113,11 @@ export class TicketDetail implements OnInit {
     }
   }
 
-  onCloseIssue() {
-    console.log('Close issue yet to implemented');
+  onTicketCloseClick() {
+    const ticketId = this.ticketDetail()?.id;
+    console.log('Close ticket: ', ticketId);
+    if (ticketId) {
+      this.agentSocketService.closeTicket(ticketId);
+    }
   }
 }
