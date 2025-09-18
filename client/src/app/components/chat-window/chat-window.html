@@ -1,13 +1,4 @@
 <div class="w-120 h-[480px] border-1 border-gray-300 flex flex-col overflow-hidden z-50">
-  <!-- header -->
-  <!-- <div class="bg-blue-600 text-white flex items-center px-4 py-2">
-    <mat-icon class="mr-2">support_agent</mat-icon>
-    <div class="flex-1">
-      <div class="font-semibold">Support</div>
-      <div class="text-xs text-green-300">Online</div>
-    </div>
-  </div> -->
-
   <!-- messages -->
   <div #chatContainer class="flex-1 overflow-y-auto bg-gray-50 p-3 flex flex-col">
     @if (showSpinner()) {
@@ -61,7 +52,15 @@
         </div>
       </div>
     </div>
-    }}
+    } @if (recipientIsTyping()) {
+    <div
+      class="flex gap-1 items-center bg-gray-200 text-gray-700 self-start px-3 py-4 my-1 rounded-lg text-sm ml-10"
+    >
+      <span class="w-2 h-2 rounded-full bg-current animate-bounce"></span>
+      <span class="w-2 h-2 rounded-full bg-current animate-bounce [animation-delay:-0.16s]"></span>
+      <span class="w-2 h-2 rounded-full bg-current animate-bounce [animation-delay:-0.32s]"></span>
+    </div>
+    } }
   </div>
 
   <!-- input -->

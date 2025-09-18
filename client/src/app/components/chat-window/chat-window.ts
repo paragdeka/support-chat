@@ -1,11 +1,11 @@
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import {
-  AfterViewChecked,
   Component,
   effect,
   ElementRef,
   inject,
   input,
+  OnInit,
   output,
   viewChild,
 } from '@angular/core';
@@ -31,17 +31,35 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   ],
   templateUrl: './chat-window.html',
 })
-export class ChatWindow {
+export class ChatWindow implements OnInit {
   messagesInput = input<MessageDisplay[]>([]);
   self = input<MessageDisplay['sender']>('customer');
   messageSent = output<{ text: string }>();
   disabled = input<boolean>(false);
   chatContainer = viewChild<ElementRef>('chatContainer');
   showSpinner = input<boolean>(false);
+  isTyping = output();
+  recipientIsTyping = input<boolean>();
+
+  private waitBeforeSendingNextKeyStroke = false;
+  ngOnInit(): void {
+    this.messageForm.valueChanges.subscribe(() => {
+      if (this.waitBeforeSendingNextKeyStroke) return;
+
+      this.isTyping.emit();
+
+      this.waitBeforeSendingNextKeyStroke = true;
+      setTimeout(() => {
+        this.waitBeforeSendingNextKeyStroke = false;
+      }, 1000);
+    });
+  }
 
   private scrollChat = effect(() => {
+    // when these 2 states change, scroll chat container
     this.messagesInput().length;
-    console.log('Effect running..');
+    this.recipientIsTyping();
+
     setTimeout(() => this.scrollToBottom(), 0);
   });
 

@@ -61,6 +61,14 @@ export class TicketDetail implements OnInit {
   );
   combinedMessages = computed(() => [...(this.ticketDetail()?.messages ?? []), ...this.messages()]);
 
+  customerIsTyping = signal<boolean>(false);
+  private syncTyping = effect(() => {
+    const ticketId = this.ticketDetail()?.id;
+    if (ticketId) {
+      this.customerIsTyping.set(this.agentSocketService.typingIndicators()[ticketId] ?? false);
+    }
+  });
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -144,6 +152,13 @@ export class TicketDetail implements OnInit {
     console.log('Close ticket: ', ticketId);
     if (ticketId) {
       this.agentSocketService.closeTicket(ticketId);
+    }
+  }
+
+  onAgentIsTyping() {
+    const ticketId = this.ticketDetail()?.id;
+    if (ticketId) {
+      this.agentSocketService.sendAgentTypingEvent(ticketId);
     }
   }
 }

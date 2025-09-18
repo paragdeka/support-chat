@@ -21,6 +21,7 @@ export class Chat implements OnInit, OnDestroy {
   readonly chatDisabled = signal<boolean>(false);
   private titleService = inject(Title);
   readonly msgHistoryFetching = signal<boolean>(false);
+  readonly agentIsTyping = this.customerSocketService.typingIndicator;
 
   ngOnInit(): void {
     this.titleService.setTitle('Customer Chat');
@@ -64,7 +65,7 @@ export class Chat implements OnInit, OnDestroy {
     const last = msgs[msgs.length - 1];
 
     // using this as hack, cause I'm running out of time
-    if (last.sender === 'system' && last.text.includes('has been closed')) {
+    if (last?.sender === 'system' && last?.text.includes('has been closed')) {
       this.chatDisabled.set(true);
     }
   });
@@ -72,5 +73,9 @@ export class Chat implements OnInit, OnDestroy {
   sendCustomerMessage({ text }: { text: string }) {
     console.log('Msg: ', text);
     this.customerSocketService.sendMessage(text);
+  }
+
+  onCustomerIsTyping() {
+    this.customerSocketService.sendCustomerTypingEvent();
   }
 }

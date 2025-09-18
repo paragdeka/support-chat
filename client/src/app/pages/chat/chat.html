@@ -16,6 +16,8 @@
       (messageSent)="sendCustomerMessage($event)"
       [disabled]="chatDisabled()"
       [showSpinner]="msgHistoryFetching()"
+      (isTyping)="onCustomerIsTyping()"
+      [recipientIsTyping]="agentIsTyping()"
     />
   </div>
 </div>

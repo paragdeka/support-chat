@@ -14,8 +14,7 @@ interface CustomerMessagePayload extends CustomerJoinPayload {
   text: string;
 }
 
-export interface TypingPayload {
-  ticketId: string;
+interface TypingPayload {
   sessionId?: string;
   agentId?: string;
   isTyping: boolean;
@@ -48,6 +47,7 @@ export class CustomerSocketService {
   private customerDataService = inject(CustomerDataService);
 
   readonly messages = signal<MessageDisplay[]>([]);
+  readonly typingIndicator = signal<boolean>(false);
 
   private addMessage(msg: ChatMessagePayload) {
     if (msg.from === 'agent') {
@@ -95,6 +95,16 @@ export class CustomerSocketService {
     this.socket.on('chat_message', (payload) => {
       this.addMessage(payload);
     });
+
+    this.socket.on('typing', (payload) => {
+      if (payload.agentId) {
+        this.typingIndicator.set(true);
+
+        setTimeout(() => {
+          this.typingIndicator.set(false);
+        }, 2000);
+      }
+    });
   }
 
   disconnect() {
@@ -126,5 +136,15 @@ export class CustomerSocketService {
         text,
       },
     ]);
+  }
+
+  sendCustomerTypingEvent() {
+    const customer = this.customerDataService.getOrCreate();
+    if (customer) {
+      this.socket.emit('typing', {
+        isTyping: true,
+        sessionId: customer.id,
+      });
+    }
   }
 }

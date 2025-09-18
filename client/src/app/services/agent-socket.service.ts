@@ -1,5 +1,4 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { TypingPayload } from './customer-socket.service';
 import { io, Socket } from 'socket.io-client';
 import { AgentAuthService } from './agent-auth.service';
 import { MessageDisplay } from './ticket.service';
@@ -39,6 +38,13 @@ interface AgentMessagePayload {
   text: string;
 }
 
+interface TypingPayload {
+  sessionId?: string;
+  agentId?: string;
+  isTyping: boolean;
+  ticketId: string;
+}
+
 interface ClientToServerEvents {
   agent_join: (p: AgentJoinPayload, cb?: (ack: { ok: boolean }) => void) => void;
   typing: (p: TypingPayload) => void;
@@ -76,6 +82,21 @@ export class AgentSocketService {
   readonly ticketStatuses = signal<
     Record<string, { selfAssigned: boolean; ticketClosed: boolean }>
   >({});
+  readonly typingIndicators = signal<{ [ticketId: string]: boolean }>({});
+
+  private setTyping(ticketId: string) {
+    this.typingIndicators.update((prev) => ({
+      ...prev,
+      [ticketId]: true,
+    }));
+  }
+
+  private clearTyping(ticketId: string) {
+    this.typingIndicators.update((prev) => ({
+      ...prev,
+      [ticketId]: false,
+    }));
+  }
 
   private addMessage(msg: ChatMessagePayload) {
     if (msg.from === 'customer') {
@@ -132,6 +153,16 @@ export class AgentSocketService {
     this.socket.on('chat_message', (payload) => {
       console.log('Chat from customer: ', payload);
       this.addMessage(payload);
+    });
+
+    this.socket.on('typing', (payload) => {
+      if (payload.ticketId && payload.sessionId) {
+        this.setTyping(payload.ticketId);
+
+        setTimeout(() => {
+          this.clearTyping(payload.ticketId);
+        }, 2000);
+      }
     });
   }
 
@@ -198,6 +229,17 @@ export class AgentSocketService {
     const agentId = this.agentAuthService.agentProfile()?.id;
     if (agentId) {
       this.socket.emit('agent_join_ticket_room', {
+        agentId,
+        ticketId,
+      });
+    }
+  }
+
+  sendAgentTypingEvent(ticketId: string) {
+    const agentId = this.agentAuthService.agentProfile()?.id;
+    if (agentId) {
+      this.socket.emit('typing', {
+        isTyping: true,
         agentId,
         ticketId,
       });
