@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { switchMap, tap } from 'rxjs';
 
 export interface SignupForm {
   name: string;
@@ -44,29 +44,33 @@ export class AgentAuthService {
   readonly agentProfile = signal<AgentProfile | undefined>(undefined);
 
   checkAuthStatus() {
-    this.http.get<ProfileResponse>(`${this.apiUrl}/me`).subscribe({
-      next: (result) => {
-        this.isAuthenticated.set(true);
-        this.agentProfile.set({
-          id: result._id,
-          email: result.email,
-          name: result.name,
-          role: result.role as 'agent' | 'admin',
-          createdAt: new Date(result.createdAt),
-        });
-      },
-      error: () => this.isAuthenticated.set(false),
-    });
+    return this.http.get<ProfileResponse>(`${this.apiUrl}/me`).pipe(
+      tap({
+        next: (result) => {
+          this.isAuthenticated.set(true);
+          this.agentProfile.set({
+            id: result._id,
+            email: result.email,
+            name: result.name,
+            role: result.role as 'agent' | 'admin',
+            createdAt: new Date(result.createdAt),
+          });
+        },
+        error: () => this.isAuthenticated.set(false),
+      })
+    );
   }
 
   signup(agent: SignupForm) {
-    return this.http.post(`${this.apiUrl}/signup`, agent).pipe(tap(() => this.checkAuthStatus()));
+    return this.http
+      .post(`${this.apiUrl}/signup`, agent)
+      .pipe(switchMap(() => this.checkAuthStatus()));
   }
 
   login(credentials: CredentialsForm) {
     return this.http
       .post(`${this.apiUrl}/login`, credentials)
-      .pipe(tap(() => this.checkAuthStatus()));
+      .pipe(switchMap(() => this.checkAuthStatus()));
   }
 
   logout() {
