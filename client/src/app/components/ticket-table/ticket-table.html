@@ -102,7 +102,7 @@
               >
             </td>
             <td class="table-cell">
-              {{ ticket.issue }}
+              {{ ticket.issue.length > 60 ? ticket.issue.substring(0, 60) + '...' : ticket.issue }}
             </td>
             <td class="table-cell">
               <span
