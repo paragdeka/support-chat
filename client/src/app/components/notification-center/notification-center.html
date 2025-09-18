@@ -1,5 +1,9 @@
 <div class="mt-2">
-  <button (click)="notificationSeen()" [matMenuTriggerFor]="notificationCenter" class="relative">
+  <button
+    (click)="notificationSeen()"
+    [matMenuTriggerFor]="notificationCenter"
+    class="relative cursor-pointer"
+  >
     <mat-icon>notifications</mat-icon>
     <div
       [ngClass]="{
