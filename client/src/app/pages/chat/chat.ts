@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CustomerDataService } from '../../services/customer-data.service';
 import { MessageDisplay, TicketService } from '../../services/ticket.service';
 import { formatRelativeDate } from '../../utils';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-chat',
@@ -18,8 +19,10 @@ export class Chat implements OnInit, OnDestroy {
   private ticketService = inject(TicketService);
   private messageHistory = signal<MessageDisplay[]>([]);
   readonly chatDisabled = signal<boolean>(false);
+  private titleService = inject(Title);
 
   ngOnInit(): void {
+    this.titleService.setTitle('Customer Chat');
     this.customerSocketService.connect(environment.baseUrl);
 
     const customer = this.customerDataService.getOrCreate();

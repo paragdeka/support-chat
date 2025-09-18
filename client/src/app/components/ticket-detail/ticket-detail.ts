@@ -6,6 +6,7 @@ import { ChatWindow } from '../chat-window/chat-window';
 import { AgentSocketService } from '../../services/agent-socket.service';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { Title } from '@angular/platform-browser';
 
 export interface TicketDetailType extends TicketRow {
   messages: MessageDisplay[];
@@ -21,6 +22,7 @@ export class TicketDetail implements OnInit {
   private ticketSerivce = inject(TicketService);
   private agentSocketService = inject(AgentSocketService);
   readonly chatDisabled = signal<boolean>(false);
+  private titleService = inject(Title);
 
   private retryJoiningTicketRoom = effect(() => {
     if (this.agentSocketService.isConnected()) {
@@ -40,6 +42,8 @@ export class TicketDetail implements OnInit {
 
   private updateTicketStatus = effect(() => {
     const id = this.route.snapshot.paramMap.get('id');
+    this.titleService.setTitle(`🎫 Ticket - #${id?.slice(-6)}`);
+
     if (id && this.agentSocketService.ticketStatuses()[id]?.selfAssigned) {
       this.ticketDetail.update((prev) => (prev ? { ...prev, status: 'in-progress' } : prev));
       this.chatDisabled.set(false);
