@@ -35,7 +35,8 @@ export class TicketTable implements OnInit {
 
   private syncNewTicketsFromSocket = effect(() => {
     const t = this.newTicket();
-    if (t) {
+    // add it to the current table if 'open' filter is used or no filter
+    if (t && (this.activeFilters['status'] === 'open' || !this.activeFilters['status'])) {
       this.tickets.update((prev) => [...prev, this.mapNewTicket(t)]);
     }
   });
