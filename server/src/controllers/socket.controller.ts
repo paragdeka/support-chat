@@ -87,14 +87,22 @@ export function customerMessageHandler(io: IOServerType, socket: SocketType) {
         message.ticketId = existingTicket._id;
         await message.save({ session: dbSession });
 
-        await dbSession.commitTransaction();
-        dbSession.endSession();
-
         if (existingTicket.status !== "closed") {
+          const sysMsgTE = SYSTEM_MESSAGES.ticketExists(existingTicketId);
+          await storeSystemMessage(
+            sysMsgTE,
+            existingTicketId,
+            sessionId,
+            dbSession
+          );
+
           io.to(customerRoom(sessionId)).emit("system_message", {
-            text: SYSTEM_MESSAGES.ticketExists(existingTicketId),
+            text: sysMsgTE,
           });
         }
+
+        await dbSession.commitTransaction();
+        dbSession.endSession();
         return;
       }
 
@@ -113,9 +121,6 @@ export function customerMessageHandler(io: IOServerType, socket: SocketType) {
       message.ticketId = newTicket._id;
       await message.save({ session: dbSession });
 
-      await dbSession.commitTransaction();
-      dbSession.endSession();
-
       const newTicketId = newTicket._id.toString();
       io.to(AGENTS_ROOM).emit("unassigned_ticket", {
         id: newTicketId,
@@ -125,8 +130,15 @@ export function customerMessageHandler(io: IOServerType, socket: SocketType) {
         customerName,
         status: "open",
       });
+
+      const sysMsgTC = SYSTEM_MESSAGES.ticketCreated(newTicketId);
+      await storeSystemMessage(sysMsgTC, newTicketId, sessionId, dbSession);
+
+      await dbSession.commitTransaction();
+      dbSession.endSession();
+
       io.to(customerRoom(sessionId)).emit("system_message", {
-        text: SYSTEM_MESSAGES.ticketCreated(newTicketId),
+        text: sysMsgTC,
       });
     } catch (error) {
       // rollback
@@ -204,35 +216,52 @@ export function ticketAssignHandler(io: IOServerType, socket: SocketType) {
     }
     console.log(`Self assign request by ${agentId} for ${ticketId}`);
 
+    const dbSession = await mongoose.startSession();
     try {
-      await Ticket.updateOne(
+      dbSession.startTransaction();
+      const updatedTicket = await Ticket.findOneAndUpdate(
         { _id: ticketId },
-        { agentId, status: "in-progress" }
-      );
+        { agentId, status: "in-progress" },
+        {
+          session: dbSession,
+          new: true,
+        }
+      ).populate<{ agentId: AgentType }>("agentId");
 
       // agent joins ticket room
       console.log("Agent joined ticketRoom");
       socket.join(ticketRoom(ticketId));
 
-      const ticket = await Ticket.findById(ticketId).populate<{
-        agentId: AgentType;
-      }>("agentId");
-
-      if (ticket?.sessionId) {
-        const customerSocket = customerSocketsMap.get(ticket.sessionId);
+      if (updatedTicket?.sessionId) {
+        const customerSocket = customerSocketsMap.get(updatedTicket.sessionId);
         if (customerSocket) {
           console.log("customer joined ticket room");
           customerSocket.join(ticketRoom(ticketId));
         }
 
-        io.to(customerRoom(ticket.sessionId)).emit("system_message", {
-          text: SYSTEM_MESSAGES.ticketAssigned(ticket.agentId?.name || ""),
+        const sysMsgTA = SYSTEM_MESSAGES.ticketAssigned(
+          updatedTicket.agentId?.name || ""
+        );
+        await storeSystemMessage(
+          sysMsgTA,
+          ticketId,
+          updatedTicket.sessionId,
+          dbSession
+        );
+
+        await dbSession.commitTransaction();
+        dbSession.endSession();
+
+        io.to(customerRoom(updatedTicket.sessionId)).emit("system_message", {
+          text: sysMsgTA,
         });
 
         cb?.({ ok: true });
       }
     } catch (error) {
-      console.error(error);
+      await dbSession.abortTransaction();
+      dbSession.endSession();
+
       return cb?.({ ok: false, error: "Internal Server Error" });
     }
   });
@@ -321,8 +350,25 @@ export function ticketCloseHandler(io: IOServerType, socket: SocketType) {
     }
     console.log(`Ticket close request by ${agentId} for ${ticketId}`);
 
+    const dbSession = await mongoose.startSession();
     try {
-      await Ticket.updateOne({ _id: ticketId, agentId }, { status: "closed" });
+      dbSession.startTransaction();
+      const updatedTicket = await Ticket.findOneAndUpdate(
+        { _id: ticketId, agentId },
+        { status: "closed" },
+        { session: dbSession, new: true }
+      );
+
+      const sysMsgTCL = SYSTEM_MESSAGES.ticketClosed(ticketId);
+      await storeSystemMessage(
+        sysMsgTCL,
+        ticketId,
+        updatedTicket?.sessionId!,
+        dbSession
+      );
+
+      await dbSession.commitTransaction();
+      dbSession.endSession();
 
       io.to(ticketRoom(ticketId)).emit("system_message", {
         text: SYSTEM_MESSAGES.ticketClosed(ticketId),
@@ -333,6 +379,9 @@ export function ticketCloseHandler(io: IOServerType, socket: SocketType) {
       // agent leaves ticket room
       socket.leave(ticketRoom(ticketId));
     } catch (error) {
+      await dbSession.abortTransaction();
+      dbSession.endSession();
+
       return cb?.({ ok: false, error: "Internal Server Error" });
     }
   });
@@ -361,4 +410,30 @@ function randomPriority(): "high" | "medium" | "low" {
   const p: ("high" | "medium" | "low")[] = ["high", "medium", "low"];
   const randomIndex = Math.floor(Math.random() * p.length);
   return p[randomIndex];
+}
+
+async function storeSystemMessage(
+  text: string,
+  ticketId: string,
+  sessionId: string,
+  dbSession: mongoose.mongo.ClientSession
+) {
+  const systemMsgData: Partial<MessageType> = {
+    text,
+    sender: "system",
+    ticketId: new mongoose.Types.ObjectId(ticketId),
+    sessionId,
+  };
+
+  const [msg] = await Message.create([systemMsgData], {
+    session: dbSession,
+  });
+
+  await Ticket.updateOne(
+    { _id: ticketId },
+    {
+      $push: { messages: msg._id },
+    },
+    { session: dbSession }
+  );
 }
