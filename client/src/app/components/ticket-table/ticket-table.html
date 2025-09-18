@@ -36,9 +36,13 @@
           [ngClass]="{
             'bg-blue-200': activeFilters['status'] === 'open' && !activeFilters['agent']
           }"
-          class="p-3 rounded-sm text-neutral-600 cursor-pointer hover:bg-blue-100"
+          class="p-3 rounded-sm flex items-center justify-between text-neutral-600 cursor-pointer hover:bg-blue-100"
         >
-          All open tickets
+          <p>All Open Tickets</p>
+          <div
+            [ngClass]="{ 'bg-red-500 animate-ping': notification() }"
+            class="w-2 h-2 rounded-full"
+          ></div>
         </div>
         <div
           (click)="setFilter({ status: 'in-progress' })"
