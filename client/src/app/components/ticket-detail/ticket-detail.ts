@@ -70,48 +70,49 @@ export class TicketDetail implements OnInit {
   });
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.ticketFetching.set(true);
-      this.ticketSerivce.getTicketDetail(id).subscribe({
-        next: (result) => {
-          this.ticketFetching.set(false);
-          const msgs: MessageDisplay[] = result.messages
-            .filter((msg) => msg.sender !== 'system')
-            .map(
-              (msg): MessageDisplay => ({
-                sender: msg.sender as MessageDisplay['sender'],
-                text: msg.text,
-                createdAt: formatRelativeDate(new Date(msg.createdAt)),
-                customerName: msg.customerName,
-                agentName: msg.agentId?.name,
-                id: msg._id,
-              })
-            );
+    this.route.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      if (id) {
+        this.ticketFetching.set(true);
+        this.ticketSerivce.getTicketDetail(id).subscribe({
+          next: (result) => {
+            this.ticketFetching.set(false);
+            const msgs: MessageDisplay[] = result.messages
+              .filter((msg) => msg.sender !== 'system')
+              .map(
+                (msg): MessageDisplay => ({
+                  sender: msg.sender as MessageDisplay['sender'],
+                  text: msg.text,
+                  createdAt: formatRelativeDate(new Date(msg.createdAt)),
+                  customerName: msg.customerName,
+                  agentName: msg.agentId?.name,
+                  id: msg._id,
+                })
+              );
 
-          const ticketD: TicketDetailType = {
-            id: result._id,
-            createdAt: formatRelativeDate(new Date(result.createdAt)),
-            customerName: result.messages[0]?.customerName!,
-            priority: result.priority as TicketRow['priority'],
-            issue: result.messages[0].text,
-            status: result.status as TicketRow['status'],
-            messages: msgs,
-          };
+            const ticketD: TicketDetailType = {
+              id: result._id,
+              createdAt: formatRelativeDate(new Date(result.createdAt)),
+              customerName: result.messages[0]?.customerName!,
+              priority: result.priority as TicketRow['priority'],
+              issue: result.messages[0].text,
+              status: result.status as TicketRow['status'],
+              messages: msgs,
+            };
 
-          console.log('Ticket Detail: ', ticketD);
-          this.ticketDetail.set(ticketD);
+            this.ticketDetail.set(ticketD);
 
-          if (ticketD.status === 'closed') {
-            this.chatDisabled.set(true);
-          }
-        },
-        error: (err) => {
-          this.ticketFetching.set(false);
-          console.error('Ticket detail fetch failed: ', err);
-        },
-      });
-    }
+            if (ticketD.status === 'closed') {
+              this.chatDisabled.set(true);
+            }
+          },
+          error: (err) => {
+            this.ticketFetching.set(false);
+            console.error('Ticket detail fetch failed: ', err);
+          },
+        });
+      }
+    });
   }
 
   sendMessage({ text }: { text: string }) {
