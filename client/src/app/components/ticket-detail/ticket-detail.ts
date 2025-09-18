@@ -31,10 +31,18 @@ export class TicketDetail implements OnInit {
 
   readonly ticketDetail = signal<TicketDetailType | undefined>(undefined);
 
+  private disableChatIfNotAssigned = effect(() => {
+    const ticket = this.ticketDetail();
+    if (ticket && ticket.status === 'open') {
+      this.chatDisabled.set(true);
+    }
+  });
+
   private updateTicketStatus = effect(() => {
     const id = this.route.snapshot.paramMap.get('id');
     if (id && this.agentSocketService.ticketStatuses()[id]?.selfAssigned) {
       this.ticketDetail.update((prev) => (prev ? { ...prev, status: 'in-progress' } : prev));
+      this.chatDisabled.set(false);
     }
     if (id && this.agentSocketService.ticketStatuses()[id]?.ticketClosed) {
       this.ticketDetail.update((prev) => (prev ? { ...prev, status: 'closed' } : prev));
