@@ -4,6 +4,7 @@ import {
   customerRoom,
   customerSocketsMap,
   IOServerType,
+  socketToTicketMap,
   SocketType,
   ticketRoom,
 } from "../socket";
@@ -175,10 +176,10 @@ export function customerJoinHandler(_io: IOServerType, socket: SocketType) {
     socket.join(customerRoom(sessionId));
 
     const ticket = await Ticket.findOne({ sessionId });
-    console.log("Customer join handler: ", ticket);
     if (ticket && ticket.status == "in-progress") {
-      console.log("Customer re-joins ticket room");
-      socket.join(ticketRoom(ticket._id.toString()));
+      const tId = ticket._id.toString();
+      socket.join(ticketRoom(tId));
+      socketToTicketMap.set(socket.id, tId);
     }
 
     console.log(
@@ -240,6 +241,7 @@ export function ticketAssignHandler(io: IOServerType, socket: SocketType) {
         if (customerSocket) {
           console.log("customer joined ticket room");
           customerSocket.join(ticketRoom(ticketId));
+          socketToTicketMap.set(customerSocket.id, ticketId);
         }
 
         const sysMsgTA = SYSTEM_MESSAGES.ticketAssigned(
@@ -386,6 +388,24 @@ export function ticketCloseHandler(io: IOServerType, socket: SocketType) {
       dbSession.endSession();
 
       return cb?.({ ok: false, error: "Internal Server Error" });
+    }
+  });
+}
+
+export function typingHandler(io: IOServerType, socket: SocketType) {
+  socket.on("typing", (payload) => {
+    if (payload.sessionId) {
+      const ticketId = socketToTicketMap.get(socket.id);
+      if (ticketId) {
+        io.to(ticketRoom(ticketId)).emit("typing", {
+          ...payload,
+          ticketId,
+        });
+      }
+    }
+
+    if (payload.agentId) {
+      io.to(ticketRoom(payload.ticketId)).emit("typing", payload);
     }
   });
 }

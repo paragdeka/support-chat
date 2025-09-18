@@ -9,6 +9,7 @@ import {
   customerMessageHandler,
   ticketAssignHandler,
   ticketCloseHandler,
+  typingHandler,
 } from "./controllers/socket.controller";
 
 type UserType = "customer" | "agent";
@@ -138,6 +139,7 @@ const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:4200";
 
 export const customerSocketsMap = new Map<string, SocketType>();
 export const agentSocketsMap = new Map<string, SocketType>();
+export const socketToTicketMap = new Map<string, string>();
 
 export function createSocketServer(httpServer: Server) {
   const io = new IOServer<
@@ -162,6 +164,7 @@ export function createSocketServer(httpServer: Server) {
     agentMessageHandler(io, socket);
     agentJoinTicketRoomHandler(io, socket);
     ticketCloseHandler(io, socket);
+    typingHandler(io, socket);
 
     socket.on("disconnect", () => {
       console.log(`Socket disconnected ${socket.id}`);
