@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { formatRelativeDate } from '../utils';
@@ -58,6 +58,31 @@ export class TicketService {
   listAllTickets() {
     this.isFetching.set(true);
     this.http.get<TicketResponse[]>(`${this.apiUrl}`).subscribe({
+      next: (results) => {
+        console.log('Tickets: ', results);
+        const ticketRows: TicketRow[] = results.map((res) => ({
+          id: res._id,
+          createdAt: formatRelativeDate(new Date(res.createdAt)),
+          customerName: res.messages[0].customerName!,
+          priority: res.priority as TicketRow['priority'],
+          issue: res.messages[0].text,
+          status: res.status as TicketRow['status'],
+        }));
+
+        this.tickets.set(ticketRows);
+        this.isFetching.set(false);
+      },
+      error: (err) => {
+        console.error('Tickets fetching failed: ', err);
+      },
+    });
+  }
+
+  getTickets(filters: { [key: string]: any }) {
+    this.isFetching.set(true);
+
+    const params = new HttpParams({ fromObject: filters });
+    this.http.get<TicketResponse[]>(`${this.apiUrl}`, { params }).subscribe({
       next: (results) => {
         console.log('Tickets: ', results);
         const ticketRows: TicketRow[] = results.map((res) => ({

@@ -49,5 +49,5 @@ body {
 }
 
 .table-row:nth-child(even) {
-  @apply bg-gray-100;
+  @apply bg-gray-100 hover:bg-gray-200;
 }

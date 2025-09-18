@@ -3,7 +3,7 @@ import { TicketRow, TicketService } from '../../services/ticket.service';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { AgentSocketService, UnassignedTicketPayload } from '../../services/agent-socket.service';
 import { formatRelativeDate } from '../../utils';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
@@ -15,6 +15,7 @@ export class TicketTable implements OnInit {
   private ticketService = inject(TicketService);
   private agentSocketService = inject(AgentSocketService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   tickets = this.ticketService.tickets;
   ticketsFetching = this.ticketService.isFetching;
@@ -39,11 +40,25 @@ export class TicketTable implements OnInit {
     }
   });
 
+  activeFilters: { [key: string]: string } = {};
+
   ngOnInit(): void {
-    this.ticketService.listAllTickets();
+    // this.ticketService.listAllTickets();
+    this.route.queryParams.subscribe((params) => {
+      this.activeFilters = params;
+      console.log('Params: ', params);
+      this.ticketService.getTickets(params);
+    });
   }
 
   onRowClick(ticket: TicketRow) {
     this.router.navigate([`/support/ticket/${ticket.id}`]);
+  }
+
+  setFilter(filters: { [key: string]: any }) {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: filters,
+    });
   }
 }

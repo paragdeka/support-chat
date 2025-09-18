@@ -1,62 +1,128 @@
-<div class="w-full overflow-x-auto min-w-[500px]">
-  @if (ticketsFetching()) {
-  <div class="flex justify-center">
-    <mat-spinner diameter="50" />
+<div class="flex gap-1">
+  <div class="w-1/4 relative">
+    <div class="sticky top-0 left-0">
+      <div class="px-4 py-3 h-12 border-b border-b-gray-300 text-xl text-neutral-700">Views</div>
+      <div class="px-5 py-2 flex flex-col gap-1">
+        <div
+          (click)="setFilter({})"
+          [ngClass]="{
+            'bg-blue-200': !activeFilters['status']
+          }"
+          class="p-3 rounded-sm text-neutral-800 hover:bg-blue-100 cursor-pointer"
+        >
+          All Tickets
+        </div>
+        <div
+          (click)="setFilter({ status: 'in-progress', agent: 'true' })"
+          [ngClass]="{
+            'bg-blue-200':
+              activeFilters['status'] === 'in-progress' && activeFilters['agent'] === 'true'
+          }"
+          class="p-3 rounded-sm text-neutral-800 hover:bg-blue-100 cursor-pointer"
+        >
+          Your in-progress tickets
+        </div>
+        <div
+          (click)="setFilter({ status: 'closed', agent: 'true' })"
+          [ngClass]="{
+            'bg-blue-200': activeFilters['status'] === 'closed' && activeFilters['agent'] === 'true'
+          }"
+          class="p-3 rounded-sm text-neutral-800 hover:bg-blue-100 cursor-pointer"
+        >
+          Your closed tickets
+        </div>
+        <div
+          (click)="setFilter({ status: 'open' })"
+          [ngClass]="{
+            'bg-blue-200': activeFilters['status'] === 'open' && !activeFilters['agent']
+          }"
+          class="p-3 rounded-sm text-neutral-600 cursor-pointer hover:bg-blue-100"
+        >
+          All open tickets
+        </div>
+        <div
+          (click)="setFilter({ status: 'in-progress' })"
+          [ngClass]="{
+            'bg-blue-200': activeFilters['status'] === 'in-progress' && !activeFilters['agent']
+          }"
+          class="p-3 rounded-sm text-neutral-600 cursor-pointer hover:bg-blue-100"
+        >
+          All in-progress tickets
+        </div>
+        <div
+          (click)="setFilter({ status: 'closed' })"
+          [ngClass]="{
+            'bg-blue-200': activeFilters['status'] === 'closed' && !activeFilters['agent']
+          }"
+          class="p-3 rounded-sm text-neutral-600 cursor-pointer hover:bg-blue-100"
+        >
+          All closed tickets
+        </div>
+      </div>
+    </div>
   </div>
-  } @else {
-  <table class="table-auto border-1 border-gray-300">
-    <thead class="table-header">
-      <tr>
-        <th class="header-cell">Id</th>
-        <th class="header-cell">Status</th>
-        <th class="header-cell">Issue</th>
-        <th class="header-cell">Priority</th>
-        <th class="header-cell">Requester</th>
-        <th class="header-cell">Requested</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (ticket of this.tickets(); track ticket.id) {
+  <div class="flex-1">
+    <div class="w-full overflow-x-auto min-w-[500px]">
+      @if (ticketsFetching()) {
+      <div class="flex justify-center mt-8">
+        <mat-spinner diameter="50" />
+      </div>
+      } @else {
+      <table class="table-auto border-1 border-gray-300 w-full">
+        <thead class="table-header">
+          <tr>
+            <th class="header-cell">Id</th>
+            <th class="header-cell">Status</th>
+            <th class="header-cell">Issue</th>
+            <th class="header-cell">Priority</th>
+            <th class="header-cell">Requester</th>
+            <th class="header-cell">Requested</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ticket of this.tickets(); track ticket.id) {
 
-      <tr (click)="onRowClick(ticket)" class="table-row">
-        <td class="table-cell">
-          {{ ticket.id.slice(-6) }}
-        </td>
-        <td class="table-cell">
-          <span
-            class="px-3 py-0.5 rounded-xl text-nowrap"
-            [ngClass]="{
-              'bg-red-200 text-red-800': ticket.status === 'open',
-              'bg-yellow-200 text-yellow-800': ticket.status === 'in-progress',
-              'bg-green-200 text-green-800': ticket.status === 'closed'
-            }"
-            >{{ ticket.status | titlecase }}</span
-          >
-        </td>
-        <td class="table-cell">
-          {{ ticket.issue }}
-        </td>
-        <td class="table-cell">
-          <span
-            class="px-3 py-0.5 rounded-xl"
-            [ngClass]="{
-              'bg-blue-500 text-blue-100': ticket.priority === 'high',
-              'bg-blue-300 text-blue-900': ticket.priority === 'medium',
-              'bg-blue-100 text-blue-800': ticket.priority === 'low'
-            }"
-          >
-            {{ ticket.priority | titlecase }}
-          </span>
-        </td>
-        <td class="table-cell">
-          {{ ticket.customerName | titlecase }}
-        </td>
-        <td class="table-cell">
-          {{ ticket.createdAt }}
-        </td>
-      </tr>
+          <tr (click)="onRowClick(ticket)" class="table-row">
+            <td class="table-cell">
+              {{ ticket.id.slice(-6) }}
+            </td>
+            <td class="table-cell">
+              <span
+                class="px-3 py-0.5 rounded-xl text-nowrap"
+                [ngClass]="{
+                  'bg-red-200 text-red-800': ticket.status === 'open',
+                  'bg-yellow-200 text-yellow-800': ticket.status === 'in-progress',
+                  'bg-green-200 text-green-800': ticket.status === 'closed'
+                }"
+                >{{ ticket.status | titlecase }}</span
+              >
+            </td>
+            <td class="table-cell">
+              {{ ticket.issue }}
+            </td>
+            <td class="table-cell">
+              <span
+                class="px-3 py-0.5 rounded-xl"
+                [ngClass]="{
+                  'bg-blue-500 text-blue-100': ticket.priority === 'high',
+                  'bg-blue-300 text-blue-900': ticket.priority === 'medium',
+                  'bg-blue-100 text-blue-800': ticket.priority === 'low'
+                }"
+              >
+                {{ ticket.priority | titlecase }}
+              </span>
+            </td>
+            <td class="table-cell">
+              {{ ticket.customerName | titlecase }}
+            </td>
+            <td class="table-cell">
+              {{ ticket.createdAt }}
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
       }
-    </tbody>
-  </table>
-  }
+    </div>
+  </div>
 </div>
