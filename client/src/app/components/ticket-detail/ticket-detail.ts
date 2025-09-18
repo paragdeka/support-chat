@@ -5,6 +5,7 @@ import { formatRelativeDate } from '../../utils';
 import { ChatWindow } from '../chat-window/chat-window';
 import { AgentSocketService } from '../../services/agent-socket.service';
 import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
 
 export interface TicketDetailType extends TicketRow {
   messages: MessageDisplay[];
@@ -12,7 +13,7 @@ export interface TicketDetailType extends TicketRow {
 
 @Component({
   selector: 'app-ticket-detail',
-  imports: [ChatWindow, MatButtonModule],
+  imports: [ChatWindow, MatButtonModule, CommonModule],
   templateUrl: './ticket-detail.html',
 })
 export class TicketDetail implements OnInit {
