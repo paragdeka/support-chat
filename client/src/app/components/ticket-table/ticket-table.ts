@@ -5,10 +5,11 @@ import { AgentSocketService, UnassignedTicketPayload } from '../../services/agen
 import { formatRelativeDate } from '../../utils';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-ticket-table',
-  imports: [TitleCasePipe, CommonModule, MatProgressSpinnerModule],
+  imports: [TitleCasePipe, CommonModule, MatProgressSpinnerModule, MatIconModule],
   templateUrl: './ticket-table.html',
 })
 export class TicketTable implements OnInit {
@@ -22,6 +23,25 @@ export class TicketTable implements OnInit {
 
   newTicket = this.agentSocketService.unassignedTicket;
   notification = signal<boolean>(false);
+
+  sortDirection = signal<'asc' | 'desc' | null>(null);
+  priorityOrder: Record<TicketRow['priority'], number> = {
+    low: 1,
+    medium: 2,
+    high: 3,
+  };
+  sortedTickets = computed(() => {
+    const rows = [...this.tickets()];
+    const dir = this.sortDirection();
+
+    if (!dir) return rows;
+
+    return rows.sort((a, b) => {
+      const aVal = this.priorityOrder[a.priority];
+      const bVal = this.priorityOrder[b.priority];
+      return dir === 'asc' ? aVal - bVal : bVal - aVal;
+    });
+  });
 
   private mapNewTicket(newT: UnassignedTicketPayload): TicketRow {
     return {
@@ -71,5 +91,13 @@ export class TicketTable implements OnInit {
       relativeTo: this.route,
       queryParams: filters,
     });
+  }
+
+  toggleSort() {
+    const current = this.sortDirection();
+
+    if (current === null) this.sortDirection.set('asc');
+    else if (current === 'asc') this.sortDirection.set('desc');
+    else this.sortDirection.set(null);
   }
 }

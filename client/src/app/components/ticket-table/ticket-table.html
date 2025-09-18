@@ -65,6 +65,7 @@
       </div>
     </div>
   </div>
+  <!-- table -->
   <div class="flex-1">
     <div class="w-full overflow-x-auto min-w-[500px]">
       @if (ticketsFetching()) {
@@ -82,13 +83,24 @@
             <th class="header-cell">Id</th>
             <th class="header-cell">Status</th>
             <th class="header-cell">Issue</th>
-            <th class="header-cell">Priority</th>
+            <th (click)="toggleSort()" class="header-cell cursor-pointer hover:bg-gray-300">
+              <div class="flex items-center">
+                <p>Priority</p>
+                @if (this.sortDirection() === null) {
+                <mat-icon>unfold_more</mat-icon>
+                } @else if (this.sortDirection() === 'asc') {
+                <mat-icon>arrow_downward</mat-icon>
+                } @else {
+                <mat-icon>arrow_upward</mat-icon>
+                }
+              </div>
+            </th>
             <th class="header-cell">Requester</th>
             <th class="header-cell">Requested</th>
           </tr>
         </thead>
         <tbody>
-          @for (ticket of this.tickets(); track ticket.id) {
+          @for (ticket of sortedTickets(); track ticket.id) {
 
           <tr (click)="onRowClick(ticket)" class="table-row">
             <td class="table-cell">
