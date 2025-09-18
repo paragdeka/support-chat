@@ -14,9 +14,5 @@ export class Sidebar {
   isCollapsed = input<boolean>();
   toggleClicked = output();
 
-  navItems = [
-    { name: 'Dashboard', route: '/support/dashboard', icon: 'space_dashboard' },
-    { name: 'Chats', route: '/chats', icon: 'chat' },
-    { name: 'Settings', route: '/settings', icon: 'settings' },
-  ];
+  navItems = [{ name: 'Tickets', route: '/support/tickets', icon: 'space_dashboard' }];
 }
