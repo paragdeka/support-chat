@@ -9,7 +9,7 @@
   </div> -->
 
   <!-- messages -->
-  <div class="flex-1 overflow-y-auto bg-gray-50 p-3 flex flex-col">
+  <div #chatContainer class="flex-1 overflow-y-auto bg-gray-50 p-3 flex flex-col">
     @for (msg of messagesInput(); track msg.id) {
     <div class="flex mb-4">
       @if (msg.sender !== self()) {
@@ -51,6 +51,9 @@
           >
             {{ msg.text }}
           </div>
+          <p [ngClass]="{ 'self-end pr-2': msg.sender === self() }" class="text-gray-500 text-xs">
+            {{ msg.createdAt }}
+          </p>
         </div>
       </div>
     </div>

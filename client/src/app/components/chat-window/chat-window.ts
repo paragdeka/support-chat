@@ -1,5 +1,14 @@
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { Component, effect, inject, input, OnInit, output, signal } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,6 +34,13 @@ export class ChatWindow {
   self = input<MessageDisplay['sender']>('customer');
   messageSent = output<{ text: string }>();
   disabled = input<boolean>(false);
+  chatContainer = viewChild<ElementRef>('chatContainer');
+
+  private scrollChat = effect(() => {
+    this.messagesInput().length;
+    console.log('Effect running..');
+    setTimeout(() => this.scrollToBottom(), 0);
+  });
 
   private fb = inject(FormBuilder);
   messageForm = this.fb.group({
@@ -46,6 +62,13 @@ export class ChatWindow {
       this.messageSent.emit({ text });
 
       this.messageForm.reset();
+    }
+  }
+
+  private scrollToBottom() {
+    const container = this.chatContainer();
+    if (container) {
+      container.nativeElement.scrollTop = container.nativeElement.scrollHeight;
     }
   }
 }
