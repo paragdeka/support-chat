@@ -70,9 +70,9 @@ export class ChatWindow implements OnInit {
 
   private chatDisable = effect(() => {
     if (this.disabled()) {
-      this.messageForm.disable();
+      this.messageForm.disable({ emitEvent: false });
     } else {
-      this.messageForm.enable();
+      this.messageForm.enable({ emitEvent: false });
     }
   });
 
@@ -82,7 +82,7 @@ export class ChatWindow implements OnInit {
 
       this.messageSent.emit({ text });
 
-      this.messageForm.reset();
+      this.messageForm.reset({ message: '' }, { emitEvent: false });
     }
   }
 
