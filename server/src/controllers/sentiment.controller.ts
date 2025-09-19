@@ -1,46 +1,22 @@
-import natural from "natural";
+import { WordTokenizer, SentimentAnalyzer, PorterStemmer } from "natural";
+import { removeStopwords } from "stopword";
+import expandContractions from "@stdlib/nlp-expand-contractions";
 
-export type UrgencyLevel = "high" | "medium" | "low";
+const tokenizer = new WordTokenizer();
+const analyzer = new SentimentAnalyzer("English", PorterStemmer, "afinn");
 
-const Analyzer = natural.SentimentAnalyzer;
-const stemmer = natural.PorterStemmer;
-const analyzer = new Analyzer("English", stemmer, "afinn");
-const tokenizer = new natural.WordTokenizer();
+export function priorityBasedOnSentiment(
+  text: string
+): "high" | "medium" | "low" {
+  const lexed = expandContractions(text)
+    .toLowerCase()
+    .replace(/[^a-zA-Z\s]+/g, "");
+  const tokenized = tokenizer.tokenize(lexed);
+  const stopWordsRemoved = removeStopwords(tokenized);
 
-// Words that strongly indicate urgency
-const highUrgencyKeywords = [
-  "furious",
-  "angry",
-  "terrible",
-  "disaster",
-  "immediately",
-  "urgent",
-  "critical",
-  "asap",
-  "horrible",
-  "unacceptable",
-  "down",
-  "failure",
-];
+  const rate = analyzer.getSentiment(stopWordsRemoved);
 
-// Rate ticket urgency based on sentiment + keywords
-export function rateTicketUrgency(text: string): UrgencyLevel {
-  const tokens = tokenizer.tokenize(text.toLowerCase());
-  let score = analyzer.getSentiment(tokens);
-
-  // Boost score for strong urgency keywords
-  for (const word of tokens) {
-    if (highUrgencyKeywords.includes(word)) {
-      score -= 2; // push it more negative (urgent)
-    }
-  }
-
-  // Adjust thresholds for urgency
-  if (score <= -3) {
-    return "high";
-  } else if (score < 1) {
-    return "medium";
-  } else {
-    return "low";
-  }
+  if (rate >= 1) return "low";
+  if (rate > -1 && rate < 1) return "medium";
+  return "high";
 }

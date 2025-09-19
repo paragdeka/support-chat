@@ -13,7 +13,7 @@ import Message, { MessageType } from "../models/message.model";
 import { isIssue } from "./message.controller";
 import Ticket, { TicketType } from "../models/ticket.model";
 import Agent, { AgentType } from "../models/agent.model";
-import { rateTicketUrgency } from "./sentiment.controller";
+import { priorityBasedOnSentiment } from "./sentiment.controller";
 
 export function customerMessageHandler(io: IOServerType, socket: SocketType) {
   socket.on("customer_message", async (payload, cb) => {
@@ -108,7 +108,7 @@ export function customerMessageHandler(io: IOServerType, socket: SocketType) {
         return;
       }
 
-      const priority = rateTicketUrgency(text);
+      const priority = priorityBasedOnSentiment(text);
 
       // else create a new ticket and link the ticket to the message
       const ticketData: Partial<TicketType> = {
