@@ -40,8 +40,6 @@ const TicketSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-TicketSchema.index({ sessionId: 1 });
-
 export type TicketModel = mongoose.Model<TicketType>;
 
 const Ticket = mongoose.model<TicketType, TicketModel>("Ticket", TicketSchema);
