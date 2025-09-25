@@ -52,11 +52,11 @@ cd support-chat
 
 ### MongoDB
 
-Use **MongoDB Atlas** connection string.
+> Use a **MongoDB Atlas** connection string (recommended). If you prefer a local MongoDB instance, configure it as a replica set because database transactions are in use.
 
 - [Setup mongodb atlas](https://www.youtube.com/watch?v=jXgJyuBeb_o)
 
-Or start mongodb locally
+Or start mongodb locally (with replica set enabled)
 
 - [Setup mongodb locally](https://www.linkedin.com/pulse/comprehensive-guide-setting-up-mongodb-locally-macos-parasuraman-vulrc)
 
